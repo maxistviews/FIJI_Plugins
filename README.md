@@ -1,7 +1,7 @@
 # FIJI Plugins
 
 ## How to Install the Macros:
-Copy the `.ijm` files to your macros folder:
+Download the `.ijm` file to your macros folder:
 
 `FIJIINSTALL_FOLDER\Fiji.app\macros`
 
