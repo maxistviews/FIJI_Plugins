@@ -1,3 +1,4 @@
+//Created by Max Shcherbina 2023
 macro "Z Project (New)"{
     // You can pick your own 
 	imageInfo = getMetadata("Info");
