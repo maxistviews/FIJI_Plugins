@@ -12,7 +12,7 @@ DEFAULT_DIR = "J:/2023 Screen/";
 DEFAULT_CHANNELS = true;
 DEFAULT_NAMES = false;
 
-BATCH_MODE = false;
+BATCH_MODE = true;
 
 Dialog.create("Browse .lif file");
 	Dialog.addFile("File:", DEFAULT_DIR);
