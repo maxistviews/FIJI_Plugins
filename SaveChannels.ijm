@@ -6,8 +6,8 @@ macro "Save Channels"{
 
     // DEBUG SETTINGS:
     logger = true;
-    loggerSanitize = true;
-    loggercreateComposite = true;
+    loggerSanitize = false;
+    loggercreateComposite = false;
 
     
 
