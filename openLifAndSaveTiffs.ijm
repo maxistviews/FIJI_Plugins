@@ -4,15 +4,19 @@
 // Importer for Files with several series such as Leica .lif files. Copied from openLifTilescans.ijm
 // The script opens all series and then closes all images that are not TileScan merges
 
+// TODO: If user uses Custom Channel names, they should be written into the metadata of the files.
+
 // Create a prompt window to select the file
 
 loggerSanitize = false;
 logger = false;
 DEFAULT_DIR = "J:/2023 Screen/";
+// DEFAULT_DIR = "\\\\192.168.11.13\\Old Photo\\TEPASS LAB\\2023 Screen\\Xpd RNAi\\2023 09 15 Xpd x Crb DAPI phal.lif";
 DEFAULT_CHANNELS = true;
-DEFAULT_NAMES = false;
+DEFAULT_CHANNEL_NAMES = false;
 
-BATCH_MODE = true;
+BATCH_MODE = false;
+OS = getInfo("os.name");
 
 Dialog.create("Browse .lif file");
 	Dialog.addFile("File:", DEFAULT_DIR);
@@ -21,7 +25,7 @@ Dialog.create("Browse .lif file");
 	//Dialog.addFile("File:","\\\\mesawest/Old Photo/TEPASS LAB/2023 Screen/aPKC RNAi/2023 05 May aPKC 4 GFP.lif");
 	Dialog.addMessage("OPTIONAL:");
 	Dialog.addCheckbox("Save Channels Seperately", DEFAULT_CHANNELS);
-	Dialog.addCheckbox("Custom Channel Names:", DEFAULT_NAMES);
+	Dialog.addCheckbox("Custom Channel Names:", DEFAULT_CHANNEL_NAMES);
 	Dialog.addMessage("Channels will be named automatically after LUTs used, but you can change them here:");
 	Dialog.addString("Channel 1 Name:","DAPI");
 	Dialog.addString("Channel 2 Name:","GFP");
@@ -158,6 +162,12 @@ folderName = sanitizeFileName(folderNameDirty);
 
 exportDir = dir+folderName+"\\";
 
+if (OS == "Windows 10") {
+	exportDir = dir+folderName+"\\";
+} else {
+	exportDir = dir+folderName+"/";
+}
+
 	if (logger) {
 		print("lifFileName:" + lifFileName);
 		print("folderNameDirty: " +folderNameDirty);
@@ -250,3 +260,9 @@ for (i=0; i<listMerges.length; i++) {
 
 }
 print("Done!");
+
+//C4-2023 08 25 aPKC RNAI x Crb DAPI GFP Baz647 Casp3555.lif - Series009.tif
+
+//2023 08 25 aPKC RNAI x Crb DAPI GFP Baz647 Casp3555 - Series009 - C3 Red.tif
+
+//C4-2023 08 25 aPKC RNAI x Crb DAPI GFP Baz647 Casp3555 - Series009.tif
