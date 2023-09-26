@@ -43,10 +43,10 @@ run("Z Project...", "start=" +start+" stop="+end+" projection=["+projection+"]")
 zProjectlTitle = getTitle();
 setMetadata("Info", imageInfo);
 Property.set("OriginalDirectory", dicomPath);
-print(imageInfo);
+// print(imageInfo);
 // Property.set("TestDir", dicomPath);
 // dicomPath2 = Property.get("TestDir");
 // print("New dicomPath: " + dicomPath2);
 dir = Property.get("OriginalDirectory");
-print("dir: " + dir);
+if (logger) {print("dir: " + dir);}
 rename(zProjectlTitle + " [z" + start + "-" + end+"]");
