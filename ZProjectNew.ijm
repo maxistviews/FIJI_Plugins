@@ -1,8 +1,17 @@
 // Created by Max Shcherbina 2023
-
+// You can pick your own 
 dicomPath = Property.get("Location");
 imageInfo = getMetadata("Info");
-
+//originalTitle = getTitle();
+// print(imageInfo);
+//imageInfo2 = Property.getList(); //This did nothing
+// print("-----------------------NEXT--------------------------");
+//print(imageInfo2);
+// firstSlice = 1;
+// endSlice = Property.getNumber(" SizeZ");
+// print("SizeZ: " + endSlice);
+// depthInfo = Property.get("Depth");
+// print("Depth: " + depthInfo);
 
 sliceLabel = Property.getSliceLabel();
 // print("Slice Label: " + sliceLabel);
@@ -35,6 +44,9 @@ zProjectlTitle = getTitle();
 setMetadata("Info", imageInfo);
 Property.set("OriginalDirectory", dicomPath);
 print(imageInfo);
+// Property.set("TestDir", dicomPath);
+// dicomPath2 = Property.get("TestDir");
+// print("New dicomPath: " + dicomPath2);
 dir = Property.get("OriginalDirectory");
 print("dir: " + dir);
 rename(zProjectlTitle + " [z" + start + "-" + end+"]");
