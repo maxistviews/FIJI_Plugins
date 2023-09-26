@@ -5,13 +5,27 @@ macro "Save Channels"{
     channelIndex = newArray("1100","0101");
 
     // DEBUG SETTINGS:
-    logger = true;
+    loggerSaved = true;
+    logger = false;
     loggerSanitize = false;
     loggercreateComposite = false;
 
-    
+    // Check which OS is running. This is used to determine the file path delimiter
+    // OS = getInfo("os.name");
+    if (getInfo("os.name") == "Windows 10") {OS_limiter = "\\";} else {OS_limiter = "/";}
 
-    if (logger){print("----------------------------\n Starting Save Channels macro...");}
+    // Check if the image is a zstack, if it is, offer user chance to launch Z Project instead of this macro.
+    if (Stack.isHyperstack) {
+        Dialog.createNonBlocking("Z Project?");
+            Dialog.addMessage("This image is a zstack. \n SaveChannels Macro works best on ZProjections. Would you like to launch Z Project instead?");
+            Dialog.addCheckbox("Launch ZProject", true);
+            Dialog.show();
+        launchZProject = Dialog.getCheckbox();
+        if (launchZProject) {
+            runMacro("ZProjectNew");
+            exit();
+        }
+    }
 
     function getIncrementedBaseName(baseName, directory) {
         // Check for incremented base names, starting from 01
@@ -30,31 +44,32 @@ macro "Save Channels"{
         // If we reach here, we have more than 99 incremented files. Handle appropriately.
         return null;
     }
+
     function printCharacters(str) {
         for (i = 0; i < str.length(); i++) {
             char = str.charAt(i);
             if (char == "/") {
-                print("Found forward slash at position: " + i);
+                if (logger) { print("(printCharacters) Found forward slash at position: " + i);}
             } else {
-                print("Character at position " + i + " is: " + char);
+                if (logger) { print("(printCharacters) Character at position " + i + " is: " + char);}
             }
         }
     }
 
     function sanitizeFileName(fileName) {
         if (loggerSanitize) {
-            print("sanitizeFileName has been called.");
-            print("Initial fileName: " + fileName);
+            print("(sanitizeFileName) sanitizeFileName has been called.");
+            print("(sanitizeFileName) Initial fileName: " + fileName);
         }
 
         illegalChars = "<>:\"/\\|?*";
         for (i = 0; i < illegalChars.length(); i++) {
             char = substring(illegalChars, i, i+1);  // Use substring instead of charAt
             fileName = replace(fileName, char, "_");  // Replace without checking, it's ok for short strings
-            if (loggerSanitize) {print("Replaced (if present) " + char + " with _. New fileName: " + fileName);}
+            if (loggerSanitize) {print("(sanitizeFileName) Replaced (if present) " + char + " with _. New fileName: " + fileName);}
         }
         
-        if (loggerSanitize) {print("Final sanitized fileName: " + fileName);}
+        if (loggerSanitize) {print("(sanitizeFileName) Final sanitized fileName: " + fileName);}
         return fileName;
     }
 
@@ -69,7 +84,7 @@ macro "Save Channels"{
         
         if (loggercreateComposite) {print("(createComposite) Entering createComposite function...");}
     
-    // Check the length of channelIndex
+        // Check the length of channelIndex
         if (channelIndex.length() != 4) {
             error("(createComposite) ChannelIndex passed is not 4 numbers long. It is: " + channelIndex.length());
         }
@@ -126,6 +141,10 @@ macro "Save Channels"{
         if (loggercreateComposite) {print("(createComposite) Exiting createComposite function...");}
     }
 
+    // Script start running here
+    if (loggerSaved){print("----------------------------\n Starting Save Channels macro...");}
+
+
 
     originalTitle = getTitle(); //Returns the title of the current image.
     sanitizedOriginalTitle = sanitizeFileName(originalTitle);
@@ -149,21 +168,21 @@ macro "Save Channels"{
     //We now for sure have the full file path.
     // dir line 100: \\192.168.11.13\Old Photo\TEPASS LAB\2023 A1 Heatshock\2023 08 21 hsFLP x Crb p35 July11 1430 July14 200PM Dissect July 16.lif
 
-    baseFolder = substring(dir, 0, lastIndexOf(dir, "\\"));
+    baseFolder = substring(dir, 0, lastIndexOf(dir, OS_limiter));
     // baseFolder = \\192.168.11.13\Old Photo\TEPASS LAB\2023 A1 Heatshock\
 
     if (endsWith(dir, ".lif")) {
-        baseFolderName = substring(dir, lastIndexOf(dir, "\\")+1, indexOf(dir, ".lif"));
+        baseFolderName = substring(dir, lastIndexOf(dir, OS_limiter)+1, indexOf(dir, ".lif"));
         // baseFolderName: 2023 08 21 hsFLP x Crb p35 July11 1430 July14 200PM Dissect July 16
     } else if (endsWith(dir, ".tif")) {
-        baseFolderName = substring(dir, lastIndexOf(dir, "\\")+1, indexOf(dir, ".tif"));
+        baseFolderName = substring(dir, lastIndexOf(dir, OS_limiter)+1, indexOf(dir, ".tif"));
     } else {
         // Assume it doesnt have a file extension and just use it as the path.
-        baseFolderName = substring(dir, lastIndexOf(dir, "\\")+1);
+        baseFolderName = substring(dir, lastIndexOf(dir, OS_limiter)+1);
     }
 
     // Extract the name of the image from the filepath dir.
-    // baseFolderName = substring(dir, lastIndexOf(dir, "\\")+1, indexOf(dir, ".lif"));
+    // baseFolderName = substring(dir, lastIndexOf(dir, OS_limiter)+1, indexOf(dir, ".lif"));
     // dir line 100 should show be: 2023 08 21 hsFLP x Crb p35 July11 1430 July14 200PM Dissect July 16
 
     originalFileName = getInfo("image.filename"); //Gives nothing with a zStack?
@@ -174,9 +193,11 @@ macro "Save Channels"{
     // baseFolderName = substring(originalFileName2, 0, indexOf(originalFileName2, ".lif"));
 
     if (originalFileName == "") {
-        print("originalFileName is empty string");
-        print("originalFileName:" + originalFileName);
-        print("originalTitle:" + originalTitle);
+        if (logger){
+            print("originalFileName is empty string");
+            print("originalFileName:" + originalFileName);
+            print("originalTitle:" + originalTitle);
+        }
         originalFileName = originalTitle;
     }
 
@@ -212,7 +233,7 @@ macro "Save Channels"{
     Dialog.createNonBlocking("Save Channel Options");
         Dialog.addMessage("Adjust the image as needed and click OK when ready to proceed.")
         Dialog.addCheckbox("Close original file at the end", false);  // Default unchecked
-        Dialog.addCheckbox("Count Cells with MorphoLibJ (Pablo Sanchez Bosch's Scripts)", false);  // Default unchecked
+        Dialog.addCheckbox("Count Cells with MorphoLibJ (Pablo Sanchez Bosch's Scripts)(Doesnt work at the moment)", false);  // Default unchecked
         Dialog.setLocation(400,50);
         Dialog.show();
 
@@ -238,15 +259,16 @@ macro "Save Channels"{
     // Create the other windows for later.
     // run("Duplicate...", "title=[Quantification] duplicate");
 	run("Duplicate...", "title=[ChannelImage] duplicate");
-    print("This is dir before newFolder: " + dir);
+    if (logger) {print("This is dir before newFolder: " + dir);}
     // Ensure folder exists (creating it if it doesn't)
-    newFolder = baseFolder + "\\" + baseFolderName + "\\";
-    if (logger) { print("newFolder location: " + newFolder);}
+    newFolder = baseFolder + OS_limiter + baseFolderName + OS_limiter;
+
+    if (loggerSaved) {print("Files will be saved in this folder:\n" + newFolder);}
     // dir = \\192.168.11.13\Old Photo\TEPASS LAB\2023 A1 Heatshock\2023 08 21 hsFLP x Crb p35 July11 1430 July14 200PM Dissect July 16.lif
     // baseFolder = \\192.168.11.13\Old Photo\TEPASS LAB\2023 A1 Heatshock\
     // baseFolderName = 2023 08 21 hsFLP x Crb p35 July11 1430 July14 200PM Dissect July 16
     // newFolder = \\192.168.11.13\Old Photo\TEPASS LAB\2023 A1 Heatshock\2023 08 21 hsFLP x Crb p35 July11 1430 July14 200PM Dissect July 16.lif\MAX_2023 08 21 hsFLP x Crb p35 July11 1430 July14 200PM Dissect July 16 - Series004 - All Channels\
-    print("Line 217 newFolder: "+newFolder);
+    // print("Line 217 newFolder: "+newFolder);
 
     if (!File.exists(newFolder)) {
         File.makeDirectory(newFolder);
@@ -272,6 +294,7 @@ macro "Save Channels"{
 
 	run("Flatten");
     saveAs("Tiff", newFolder + indexedBaseName + "- Composite");
+    if (loggerSaved) {print("- Saved: " + indexedBaseName + "- Composite.tif");}
     
     var pixelUnit, pixelWidth, pixelHeight;
     getPixelSize(pixelUnit, pixelWidth, pixelHeight);
@@ -303,12 +326,20 @@ macro "Save Channels"{
     var width, height, channels, slices, frames;
     getDimensions(width, height, channels, slices, frames);
     numChannels = channels;
-    print("Channels = " + numChannels);
+    // print("Channels = " + numChannels);
 
-    run("Duplicate...", "title=[ChannelImageComposite] duplicate");
+    if (numChannels == 1) {
+        // If there is only one channel, save it as a tiff and exit the macro.
+        saveAs("Tiff", newFolder + indexedBaseName + "- Channel 1.tif");
+        close();
+        exit();
+    }
 
-    if (channelIndex[0] != "null") {
+
+    // Create composites for the values inside the channelIndex
+    if (channelIndex[0] != "null" && numChannels > 1) {
         // For each of the channel indexes, call the createComposite formula and add them to a closeComposite array, so that we can close them later one by one.
+        run("Duplicate...", "title=[ChannelImageComposite] duplicate");
         closeComposite = newArray();
         for (i = 0; i < channelIndex.length; i++) {
             createComposite(indexedBaseName, channelIndex[i], newFolder);
@@ -334,7 +365,7 @@ macro "Save Channels"{
             // }
         }
     }
-// Saved as Tiff: \\192.168.11.13\Old Photo\TEPASS LAB\2023 A1 Heatshock2023 08 21 hsFLP x Crb p35 July11 1430 July14 200PM Dissect July 16\MAX_2023 08 21 hsFLP x Crb p35 July11 1430 July14 200PM Dissect July 16 - Series004 - All Channels.tif z12-14-03- Channel 2+4 Composite.tif
+    // Saved as Tiff: \\192.168.11.13\Old Photo\TEPASS LAB\2023 A1 Heatshock2023 08 21 hsFLP x Crb p35 July11 1430 July14 200PM Dissect July 16\MAX_2023 08 21 hsFLP x Crb p35 July11 1430 July14 200PM Dissect July 16 - Series004 - All Channels.tif z12-14-03- Channel 2+4 Composite.tif
 
     // createComposite(indexedBaseName, "1100", newFolder);
     // if numChannels >= 4 {
@@ -347,17 +378,20 @@ macro "Save Channels"{
     // Stack.setActiveChannels("1100");
     // run("Flatten");
     // saveAs("Tiff", newFolder + indexedBaseName + "- Channel 1 + 2 Composite.tif");
-
     selectImage("ChannelImage");
-    // Split the channels
-    run("Split Channels");
 
-    // For the channels
+    if (numChannels > 1) {
+        
+        // Split the channels
+        run("Split Channels");
+    }
+
+    // Select each channel and save seperately as a Tiff
     for (i=1; i<=numChannels; i++) {
         channelTitle = "C" + i + "-ChannelImage";
         selectImage(channelTitle);
         saveAs("Tiff", newFolder + indexedBaseName + "- Channel " + i + ".tif");
-        if (logger) { print("Saved: " + indexedBaseName + "- Channel " + i + ".tif");}
+        if (loggerSaved) { print("- Saved: " + indexedBaseName + "- Channel " + i + ".tif");}
     }
 
     // Closing all open images
@@ -395,7 +429,8 @@ macro "Save Channels"{
         close("*Quantification*");
     }
 
-        if (closeOriginal) {
+    //If the user indicated to close the original file, this will close that file.
+    if (closeOriginal) {
         selectImage(originalImageID);
         close();
     }
