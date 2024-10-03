@@ -1,4 +1,4 @@
-# FIJI Plugins
+# FIJI/ImageJ Timesavers: A Collection of Scripts for Streamlining Image Analysis
 
 ## How to Install the Macros:
 Download the `.ijm` file to your macros folder:
